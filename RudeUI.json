@@ -1,0 +1,11 @@
+{
+  "Author": "rude",
+  "Name": "RudeUI",
+  "InternalName": "RudeUI",
+  "RepoUrl": "https://github.com/rude-jerk/rude-ui",
+  "Punchline": "Focused, FFXIV-styled player and target frames.",
+  "Description": "Replaces only the player and target frames with compact ElvUI-inspired unit frames styled to belong beside the native FFXIV HUD.",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 15,
+  "Tags": [ "ui", "hud", "unit frames", "target" ]
+}
