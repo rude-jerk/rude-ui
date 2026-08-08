@@ -11,4 +11,14 @@ A deliberately small Dalamud HUD plugin: ElvUI-like player and target frame layo
 
 RudeUI includes configurable player and target health frames, a compact target-of-target bar, independently movable player and target cast bars, interruptibility colors, and a slide-cast window. It does not replace party frames, job gauges, nameplates, or hotbars.
 
+## Examples
+
+### In game
+
+![RudeUI player, target, target-of-target, and cast bars](assets/screenshots/hud-example-v2.png)
+
+### Settings
+
+![RudeUI settings](assets/screenshots/settings.png)
+
 Build with `dotnet build -c Debug`, then install the generated plugin output through Dalamud's developer plugin locations.
