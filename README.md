@@ -8,6 +8,7 @@ A deliberately small Dalamud HUD plugin: ElvUI-like player and target frame layo
 - `/rudeui lock` toggles frame movement.
 - Unlock the frames and drag either one into place.
 - The stock parameter and target widgets can be hidden independently.
+- Hovered units are published through Dalamud's shared mouseover target for compatibility with action plugins such as MOAction.
 
 RudeUI includes configurable player and target health frames, a compact target-of-target bar, independently movable player and target cast bars, interruptibility colors, and a slide-cast window. It does not replace party frames, job gauges, nameplates, or hotbars.
 

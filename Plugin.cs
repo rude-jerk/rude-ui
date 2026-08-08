@@ -27,6 +27,8 @@ public sealed class Plugin : IDalamudPlugin
     private bool nativeFramesHidden;
     private bool nativeCastBarHidden;
     private bool positionsDirty;
+    private IGameObject? hoveredUnitThisFrame;
+    private IGameObject? publishedMouseoverTarget;
 
     public Plugin(IDalamudPluginInterface pluginInterface, ICommandManager commands, IObjectTable objects,
         ITargetManager targets, ICondition conditions, IDataManager data, IGameGui gameGui)
@@ -57,6 +59,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        ClearPublishedMouseover();
         SetNativeFramesVisible(true);
         SetNativeCastBarVisible(true);
         commands.RemoveHandler(Command);
@@ -80,6 +83,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void Draw()
     {
+        hoveredUnitThisFrame = null;
         SetNativeFramesVisible(!config.Enabled || !config.HideNativeFrames);
         SetNativeCastBarVisible(!config.Enabled || !config.HideNativeCastBar);
         if (config.Enabled && objects.LocalPlayer is { } player && (!config.HideOutOfCombat || conditions[ConditionFlag.InCombat]))
@@ -122,6 +126,7 @@ public sealed class Plugin : IDalamudPlugin
             }
         }
         DrawConfig();
+        PublishMouseover();
     }
 
     private (Vector2 Position, bool Moved) DrawUnitWindow(string id, ICharacter unit, bool player, float x, float y)
@@ -165,20 +170,18 @@ public sealed class Plugin : IDalamudPlugin
         if (hovered)
         {
             ImGui.SetMouseCursor(config.Locked ? ImGuiMouseCursor.Hand : ImGuiMouseCursor.ResizeAll);
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            ICharacter hoveredUnit = unit;
+            if (!player && config.ShowTargetOfTarget && GetTargetOf(unit) is { } targetOfTarget)
             {
-                var clickedUnit = unit;
-                if (!player && config.ShowTargetOfTarget && GetTargetOf(unit) is { } targetOfTarget)
-                {
-                    var mouse = ImGui.GetMousePos();
-                    var totWidth = Math.Min(size.X * .48f, 220f * scale);
-                    var totMin = new Vector2(newPos.X + size.X - 10f * scale - totWidth, newPos.Y + size.Y - 18f * scale);
-                    var totMax = totMin + new Vector2(totWidth, 14f * scale);
-                    if (mouse.X >= totMin.X && mouse.X <= totMax.X && mouse.Y >= totMin.Y && mouse.Y <= totMax.Y)
-                        clickedUnit = targetOfTarget;
-                }
-                targets.Target = clickedUnit;
+                var mouse = ImGui.GetMousePos();
+                var totWidth = Math.Min(size.X * .48f, 220f * scale);
+                var totMin = new Vector2(newPos.X + size.X - 10f * scale - totWidth, newPos.Y + size.Y - 18f * scale);
+                var totMax = totMin + new Vector2(totWidth, 14f * scale);
+                if (mouse.X >= totMin.X && mouse.X <= totMax.X && mouse.Y >= totMin.Y && mouse.Y <= totMax.Y)
+                    hoveredUnit = targetOfTarget;
             }
+            hoveredUnitThisFrame = hoveredUnit;
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Left)) targets.Target = hoveredUnit;
         }
         DrawFrame(ImGui.GetWindowDrawList(), newPos, size, unit, player, scale);
         if (hovered && config.Locked)
@@ -656,6 +659,27 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.SameLine();
         ImGui.SetNextItemWidth(115f);
         changed |= ImGui.InputFloat($"Height###{id}Height", ref height, 1f, 10f, "%.0f");
+    }
+
+    private void PublishMouseover()
+    {
+        if (hoveredUnitThisFrame != null)
+        {
+            targets.MouseOverTarget = hoveredUnitThisFrame;
+            publishedMouseoverTarget = hoveredUnitThisFrame;
+        }
+        else
+        {
+            ClearPublishedMouseover();
+        }
+    }
+
+    private void ClearPublishedMouseover()
+    {
+        if (publishedMouseoverTarget != null &&
+            targets.MouseOverTarget?.Address == publishedMouseoverTarget.Address)
+            targets.MouseOverTarget = null;
+        publishedMouseoverTarget = null;
     }
 
     private void SetNativeFramesVisible(bool visible)
