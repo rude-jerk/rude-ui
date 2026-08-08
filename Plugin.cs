@@ -666,6 +666,13 @@ public sealed class Plugin : IDalamudPlugin
         if (hoveredUnitThisFrame != null)
         {
             targets.MouseOverTarget = hoveredUnitThisFrame;
+            unsafe
+            {
+                var pronouns = FFXIVClientStructs.FFXIV.Client.UI.Misc.PronounModule.Instance();
+                if (pronouns != null)
+                    pronouns->UiMouseOverTarget =
+                        (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)hoveredUnitThisFrame.Address;
+            }
             publishedMouseoverTarget = hoveredUnitThisFrame;
         }
         else
@@ -676,9 +683,17 @@ public sealed class Plugin : IDalamudPlugin
 
     private void ClearPublishedMouseover()
     {
-        if (publishedMouseoverTarget != null &&
-            targets.MouseOverTarget?.Address == publishedMouseoverTarget.Address)
-            targets.MouseOverTarget = null;
+        if (publishedMouseoverTarget != null)
+        {
+            if (targets.MouseOverTarget?.Address == publishedMouseoverTarget.Address)
+                targets.MouseOverTarget = null;
+            unsafe
+            {
+                var pronouns = FFXIVClientStructs.FFXIV.Client.UI.Misc.PronounModule.Instance();
+                if (pronouns != null && (nint)pronouns->UiMouseOverTarget == publishedMouseoverTarget.Address)
+                    pronouns->UiMouseOverTarget = null;
+            }
+        }
         publishedMouseoverTarget = null;
     }
 
